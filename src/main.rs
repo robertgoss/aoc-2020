@@ -40,25 +40,63 @@ mod expenses {
 }
 
 mod passwords {
+    #[derive(Copy, Clone)]
+    pub enum RuleSet {
+        Sled,
+        Toboggan
+    }
     struct Verification {
         letter : char,
-        max : u64,
-        min : u64
+        max : usize,
+        min : usize
+    }
+    fn parse_range(string : &str) -> Option<(usize, usize)> {
+        let parts = string.split_once('-').map(
+            |(min, max)| (min.parse::<usize>(), max.parse::<usize>())
+        );
+        match parts {
+            Some((Ok(min), Ok(max))) => Some((min, max)),
+            _ => None
+        }
     }
     impl Verification {
         pub fn from_string(string : &str) -> Option<Verification> {
-
-            Some(Verification {
-                letter : 'a',
-                max : 3,
-                min : 1
-            })
+            let parts = string.split_once(' ').map(
+                |(range, ch)| (parse_range(range), ch.chars().next())
+            );
+            match parts {
+                Some((Some((min, max)), Some(ch))) => Some(
+                    Verification {
+                        letter : ch,
+                        max : max,
+                        min : min
+                    }
+                ),
+                _ => None
+            }
         }
-        pub fn verify(self : &Self, string : &str) -> bool {
+        pub fn verify(self : &Self, string : &str, rules : RuleSet) -> bool {
+            match rules {
+                RuleSet::Sled => self.verify_sled(string),
+                RuleSet::Toboggan => self.verify_toboggan(string)
+            }
+        }
+        pub fn verify_sled(self : &Self, string : &str) -> bool {
             let char_count = string.chars().filter(
                 |&ch| ch == self.letter
-            ).count() as u64;
+            ).count();
             char_count >= self.min && char_count <= self.max
+        }
+        pub fn verify_toboggan(self : &Self, string : &str) -> bool {
+            // Seeif the elements on the bounds are as req handle out of bounds
+            let min_has = string.chars().nth(self.min - 1).map(
+                |ch| ch == self.letter 
+            ).unwrap_or(false);
+            let max_has = string.chars().nth(self.max - 1).map(
+                |ch| ch == self.letter 
+            ).unwrap_or(false);
+            // Either min xor max should have
+            min_has ^ max_has
         }
     }
     pub struct Database {
@@ -81,9 +119,9 @@ mod passwords {
                 _ => ()
             }
         }
-        pub fn count_valid(self : &Self) -> usize {
+        pub fn count_valid(self : &Self, rules : RuleSet) -> usize {
             self.passwords.iter().filter(
-                |(verification, password)| verification.verify(password)
+                |(verification, password)| verification.verify(password, rules)
             ).count()
         }
     }
@@ -120,6 +158,7 @@ mod io {
 mod challenge {
     use super::io as io;
     use super::expenses as expenses;
+    use super::passwords as passwords;
 
     fn challenge_1() {
         let data = io::input_as_list(1);
@@ -135,7 +174,12 @@ mod challenge {
 
     fn challenge_3() {
         let data = io::input_as_password_database(2);
-        let num = data.count_valid();
+        let num = data.count_valid(passwords::RuleSet::Sled);
+        println!("{}", num);
+    }
+    fn challenge_4() {
+        let data = io::input_as_password_database(2);
+        let num = data.count_valid(passwords::RuleSet::Toboggan);
         println!("{}", num);
     }
 
@@ -144,6 +188,7 @@ mod challenge {
             1 => challenge_1(),
             2 => challenge_2(),
             3 => challenge_3(),
+            4 => challenge_4(),
             _ => () 
         }
     }
@@ -152,5 +197,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(3);
+    challenge::challenge(4);
 }
