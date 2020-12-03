@@ -128,11 +128,48 @@ mod passwords {
 
 }
 
+mod map {
+    use std::cmp;
+    use std::collections::HashSet;
+
+    pub struct Map {
+        length : usize,
+        period : usize,
+        trees : HashSet<(usize, usize)>
+    }
+    impl Map {
+        pub fn new() -> Map {
+            Map {length : 0, period : 0, trees : HashSet::new()}
+        }
+        fn lookup_tree(self : &Self, i : usize, j : usize) -> bool {
+            // Reduce j to the area to look at
+            let reduced_j : usize = j % self.period;
+            self.trees.contains(&(i, reduced_j))
+        }
+        pub fn count_trees_path(self : &Self, i_step : usize, j_step : usize) -> usize {
+            let step_num = 1 + (self.length / i_step);
+            (0..step_num).filter(
+                |&i| self.lookup_tree(i_step * i, j_step * i)
+            ).count()
+        }
+        pub fn add_line(self : &mut Self, line : &str) {
+            for (index, ch) in line.chars().enumerate() {
+                if ch == '#' {
+                    self.trees.insert((self.length, index));
+                }
+            }
+            self.length += 1;
+            self.period = cmp::max(self.period, line.chars().count())
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
     use std::fs::File;
     use std::io::BufReader;
     use super::passwords as passwords;
+    use super::map as map;
 
     pub fn input_as_list(day: i8) -> Vec<i64> {
         let filename = format!("data/day-{}.txt", day);
@@ -152,6 +189,17 @@ mod io {
             database.add_line(&line.expect("Read failure"));
         }
         database
+    }
+
+    pub fn input_as_map(day: i8) -> map::Map {
+        let filename = format!("data/day-{}.txt", day);
+        let file = File::open(filename).expect("Issue opening file");
+        let reader = BufReader::new(&file);
+        let mut map = map::Map::new();
+        for line in reader.lines() {
+            map.add_line(&line.expect("Read failure"));
+        }
+        map
     }
 }
 
@@ -182,6 +230,20 @@ mod challenge {
         let num = data.count_valid(passwords::RuleSet::Toboggan);
         println!("{}", num);
     }
+    fn challenge_5() {
+        let data = io::input_as_map(3);
+        let num = data.count_trees_path(1, 3);
+        println!("{}", num);
+    }
+    fn challenge_6() {
+        let data = io::input_as_map(3);
+        let a = data.count_trees_path(1, 1);
+        let b = data.count_trees_path(1, 3);
+        let c = data.count_trees_path(1, 5);
+        let d = data.count_trees_path(1, 7);
+        let e = data.count_trees_path(2, 1);
+        println!("{} {} {} {} {} {}", a, b, c, d, e, a*b*c*d*e);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -189,6 +251,8 @@ mod challenge {
             2 => challenge_2(),
             3 => challenge_3(),
             4 => challenge_4(),
+            5 => challenge_5(),
+            6 => challenge_6(),
             _ => () 
         }
     }
@@ -197,5 +261,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(4);
+    challenge::challenge(6);
 }
