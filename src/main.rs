@@ -164,12 +164,25 @@ mod map {
     }
 }
 
+mod passport {
+    pub struct Passport {
+        data : String
+    }
+    impl Passport {
+        pub fn new(data : &str) -> Passport {
+            Passport { data : data.to_string() }
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
+    use std::fs;
     use std::fs::File;
     use std::io::BufReader;
     use super::passwords as passwords;
     use super::map as map;
+    use super::passport as passport;
 
     pub fn input_as_list(day: i8) -> Vec<i64> {
         let filename = format!("data/day-{}.txt", day);
@@ -200,6 +213,14 @@ mod io {
             map.add_line(&line.expect("Read failure"));
         }
         map
+    }
+
+    pub fn input_as_passports(day : i8) -> Vec<passport::Passport> {
+        let filename = format!("data/day-{}.txt", day);
+        let data = fs::read_to_string(filename).expect("Issue reading file");
+        data.split("\n\n").map(
+            |chunk| passport::Passport::new(chunk)
+        ).collect()
     }
 }
 
@@ -244,6 +265,11 @@ mod challenge {
         let e = data.count_trees_path(2, 1);
         println!("{} {} {} {} {} {}", a, b, c, d, e, a*b*c*d*e);
     }
+    fn challenge_7() {
+        let data = io::input_as_passports(4);
+        let num = data.iter().count();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -253,6 +279,7 @@ mod challenge {
             4 => challenge_4(),
             5 => challenge_5(),
             6 => challenge_6(),
+            7 => challenge_7(),
             _ => () 
         }
     }
@@ -261,5 +288,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(6);
+    challenge::challenge(7);
 }
