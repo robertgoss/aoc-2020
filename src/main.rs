@@ -336,6 +336,40 @@ mod ticket {
     
 }
 
+mod customs {
+    use std::collections::HashMap;
+
+    pub struct Form {
+        people : usize,
+        answers : HashMap<char, usize>
+    }
+
+    impl Form {
+        pub fn new(string : &str) -> Form {
+            let chars = string.chars().filter(
+                |ch| ch.is_ascii_alphabetic()
+            );
+            let mut answers = HashMap::new();
+            for ch in chars {
+                let counter = answers.entry(ch).or_insert(0);
+                *counter += 1;
+            }
+            let people = string.lines().count();
+            Form { people : people, answers : answers }
+        }
+        pub fn num_any(self : &Self) -> usize {
+            self.answers.values().filter(
+                |&&val| val > 0
+            ).count()
+        }
+        pub fn num_all(self : &Self) -> usize {
+            self.answers.values().filter(
+                |&&val| val == self.people
+            ).count()
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
     use std::fs;
@@ -345,6 +379,7 @@ mod io {
     use super::map as map;
     use super::passport as passport;
     use super::ticket as ticket;
+    use super::customs as customs;
 
     pub fn input_as_list(day: i8) -> Vec<i64> {
         let filename = format!("data/day-{}.txt", day);
@@ -397,6 +432,14 @@ mod io {
             plane.add_seat(seat);
         }
         plane
+    }
+
+    pub fn input_as_forms(day : i8) -> Vec<customs::Form> {
+        let filename = format!("data/day-{}.txt", day);
+        let data = fs::read_to_string(filename).expect("Issue reading file");
+        data.split("\n\n").map(
+            |chunk| customs::Form::new(chunk)
+        ).collect()
     }
 }
 
@@ -463,7 +506,21 @@ mod challenge {
     fn challenge_10() {
         let data = io::input_as_plane(5);
         let num = data.find_missing()[0];
-        println!("{:?}", num);
+        println!("{}", num);
+    }
+    fn challenge_11() {
+        let data = io::input_as_forms(6);
+        let num : usize = data.iter().map(
+            |form| form.num_any()
+        ).sum();
+        println!("{}", num);
+    }
+    fn challenge_12() {
+        let data = io::input_as_forms(6);
+        let num : usize = data.iter().map(
+            |form| form.num_all()
+        ).sum();
+        println!("{}", num);
     }
 
     pub fn challenge(num : u8) {
@@ -478,6 +535,8 @@ mod challenge {
             8 => challenge_8(),
             9 => challenge_9(),
             10 => challenge_10(),
+            11 => challenge_11(),
+            12 => challenge_12(),
             _ => () 
         }
     }
@@ -486,5 +545,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(10);
+    challenge::challenge(12);
 }
