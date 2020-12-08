@@ -370,6 +370,83 @@ mod customs {
     }
 }
 
+mod baggage {
+    use std::collections::HashMap;
+    use petgraph::Graph;
+    use petgraph::graph::NodeIndex;
+
+    fn parse_bag(bag : &str) -> Option<(String, usize)> {
+        let parts : Vec<&str> = bag.split(" ").collect();
+        if parts.len() < 3 {
+            return None
+        }
+        if parts[0].parse::<usize>().is_ok() {
+            return None
+        }
+        let mut bag_name : String = parts[1].to_string();
+        bag_name.push_str(" ");
+        bag_name.push_str(parts[2]);
+        return Some( (bag_name, parts[0].parse::<usize>().unwrap()) )
+    }
+
+    fn parse_contents(contents : &str) -> Vec<(String, usize)> {
+        if contents == "no other bags." {
+            return Vec::new()
+        }
+        contents.split(", ").filter_map(
+            |bag| parse_bag(bag)
+        ).collect()
+    }
+
+    pub struct Rules {
+        colours : HashMap<String, NodeIndex<u32>>,
+        rules : Graph::<String, usize>
+    }
+
+    impl Rules {
+        pub fn new() -> Rules {
+            Rules { 
+                colours : HashMap::<String, NodeIndex<u32>>::new(),
+                rules : Graph::<String, usize>::new() 
+            }
+        }
+
+        pub fn add_line(self : &mut Self, line : &str) {
+            let parsed = line.split_once(" bags contain ").map(
+                |(bag, contents)| (bag, parse_contents(contents))
+            );
+            match parsed {
+                Some((bag, contents)) => self.add_rule(bag, contents),
+                _ => ()
+            }
+        }
+
+        fn add_rule(self : &mut Self, bag : &str, contents : Vec<(String, usize)>) {
+            let bag_id = self.add_colour(bag);
+            for (contained_bag, num) in contents.iter() {
+                let contained_bag_id  = self.add_colour(contained_bag);
+                self.rules.add_edge(bag_id, contained_bag_id, *num);
+            }
+        }
+
+        fn add_colour(self : &mut Self, bag : &str) -> NodeIndex<u32> {
+            match self.colours.get(&bag.to_string()) {
+                Some(bag_id) => *bag_id,
+                None => {
+                    let id = self.rules.add_node(bag.to_string());
+                    self.colours.insert(bag.to_string(), id);
+                    id
+                }
+            }
+        }
+
+        pub fn num_dependencies(self : &Self, node : &str) -> usize {
+            // TODO
+            0
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
     use std::fs;
@@ -380,6 +457,7 @@ mod io {
     use super::passport as passport;
     use super::ticket as ticket;
     use super::customs as customs;
+    use super::baggage as baggage;
 
     pub fn input_as_list(day: i8) -> Vec<i64> {
         let filename = format!("data/day-{}.txt", day);
@@ -440,6 +518,17 @@ mod io {
         data.split("\n\n").map(
             |chunk| customs::Form::new(chunk)
         ).collect()
+    }
+
+    pub fn input_as_rules(day : i8) -> baggage::Rules {
+        let filename = format!("data/day-{}.txt", day);
+        let file = File::open(filename).expect("Issue opening file");
+        let reader = BufReader::new(&file);
+        let mut rules = baggage::Rules::new();
+        for line in reader.lines() {
+            rules.add_line(&line.expect("Read failure"));
+        }
+        rules
     }
 }
 
@@ -522,6 +611,11 @@ mod challenge {
         ).sum();
         println!("{}", num);
     }
+    fn challenge_13() {
+        let data = io::input_as_rules(7);
+        let num = data.num_dependencies("shiny gold");
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -537,6 +631,7 @@ mod challenge {
             10 => challenge_10(),
             11 => challenge_11(),
             12 => challenge_12(),
+            13 => challenge_13(),
             _ => () 
         }
     }
@@ -545,5 +640,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(12);
+    challenge::challenge(13);
 }
