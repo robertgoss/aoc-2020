@@ -372,15 +372,19 @@ mod customs {
 
 mod baggage {
     use std::collections::HashMap;
+    use petgraph::prelude::Dfs;
     use petgraph::Graph;
     use petgraph::graph::NodeIndex;
+    use petgraph::visit::Reversed;
+    use petgraph::visit::EdgeRef;
+    use petgraph::Outgoing;
 
     fn parse_bag(bag : &str) -> Option<(String, usize)> {
         let parts : Vec<&str> = bag.split(" ").collect();
         if parts.len() < 3 {
             return None
         }
-        if parts[0].parse::<usize>().is_ok() {
+        if parts[0].parse::<usize>().is_err() {
             return None
         }
         let mut bag_name : String = parts[1].to_string();
@@ -440,9 +444,35 @@ mod baggage {
             }
         }
 
-        pub fn num_dependencies(self : &Self, node : &str) -> usize {
-            // TODO
-            0
+        pub fn num_dependencies_node(self : &Self, node : NodeIndex<u32>) -> usize {
+            // Iterate backwards through rules
+            let reverse_rules = Reversed(&self.rules);
+            let mut dfs = Dfs::new(&reverse_rules, node);
+            let mut count : usize = 0;
+            while let Some(nx) = dfs.next(&reverse_rules) {
+                if nx!= node {
+                    count += 1;
+                }
+            }
+            count
+        }
+
+        pub fn num_dependencies(self : &Self, node : &str) -> Option<usize> {
+            self.colours.get(&node.to_string()).map(
+                |start_id| self.num_dependencies_node(*start_id)
+            )
+        }
+
+        pub fn full_num_contained_node(self : &Self, node : NodeIndex<u32>) -> usize {
+            self.rules.edges_directed(node, Outgoing).map(
+                |edge| edge.weight() * (1 + self.full_num_contained_node(edge.target()))
+            ).sum()
+        }
+
+        pub fn full_num_contained(self : &Self, node : &str) -> Option<usize> {
+            self.colours.get(&node.to_string()).map(
+                |start_id| self.full_num_contained_node(*start_id)
+            )
         }
     }
 }
@@ -613,7 +643,12 @@ mod challenge {
     }
     fn challenge_13() {
         let data = io::input_as_rules(7);
-        let num = data.num_dependencies("shiny gold");
+        let num = data.num_dependencies("shiny gold").unwrap();
+        println!("{}", num);
+    }
+    fn challenge_14() {
+        let data = io::input_as_rules(7);
+        let num = data.full_num_contained("shiny gold").unwrap();
         println!("{}", num);
     }
 
@@ -632,6 +667,7 @@ mod challenge {
             11 => challenge_11(),
             12 => challenge_12(),
             13 => challenge_13(),
+            14 => challenge_14(),
             _ => () 
         }
     }
@@ -640,5 +676,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(13);
+    challenge::challenge(14);
 }
