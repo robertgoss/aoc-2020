@@ -610,6 +610,60 @@ mod cpu {
     }
 }
 
+mod cipher {
+
+    pub struct CipherText {
+        data : Vec<usize>
+    }
+
+    fn prop_holds(window : &[usize]) -> bool {
+        let last = *window.last().unwrap();
+        for i in 0..(window.len()-1) {
+            for j in i..(window.len()-1) {
+                if last == window[i] + window[j] {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    impl CipherText {
+        pub fn from_lines<I>(lines : I) -> CipherText 
+          where I : Iterator<Item = String> 
+        {
+            CipherText {
+                data : lines.filter_map(
+                    |line| line.parse::<usize>().ok()
+                ).collect()
+            }
+        }
+
+        pub fn first_prop(self : &Self, block : usize) -> Option<usize> {
+            self.data.windows(block+1).filter(
+                |slice| !prop_holds(slice)
+            ).map(
+                |slice| slice[block]
+            ).next()
+        }
+
+        pub fn weakness(self : &Self, block : usize) -> Option<usize> {
+            let val = self.first_prop(block).unwrap();
+            let len = self.data.len();
+            for i in 0..(len-1) {
+                for j in (i+1)..len {
+                    if val == self.data[i..=j].iter().sum::<usize>() {
+                        let smallest = self.data[i..=j].iter().min().unwrap();
+                        let largest = self.data[i..=j].iter().max().unwrap();
+                        return Some(smallest + largest)
+                    }
+                }
+            }
+            return None;
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
     use std::fs;
@@ -622,6 +676,7 @@ mod io {
     use super::customs as customs;
     use super::baggage as baggage;
     use super::cpu as cpu;
+    use super::cipher as cipher;
 
     pub fn input_as_list(day: i8) -> Vec<i64> {
         let filename = format!("data/day-{}.txt", day);
@@ -700,6 +755,15 @@ mod io {
         let file = File::open(filename).expect("Issue opening file");
         let reader = BufReader::new(&file);
         cpu::Program::from_lines(
+            reader.lines().map(|line| line.expect("Read failure"))
+        )
+    }
+
+    pub fn input_as_ciphertext(day : i8) -> cipher::CipherText {
+        let filename = format!("data/day-{}.txt", day);
+        let file = File::open(filename).expect("Issue opening file");
+        let reader = BufReader::new(&file);
+        cipher::CipherText::from_lines(
             reader.lines().map(|line| line.expect("Read failure"))
         )
     }
@@ -804,6 +868,16 @@ mod challenge {
         let num = data.fix().unwrap();
         println!("{}", num);
     }
+    fn challenge_17() {
+        let data = io::input_as_ciphertext(9);
+        let num = data.first_prop(25).unwrap();
+        println!("{}", num);
+    }
+    fn challenge_18() {
+        let data = io::input_as_ciphertext(9);
+        let num = data.weakness(25).unwrap();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -823,6 +897,8 @@ mod challenge {
             14 => challenge_14(),
             15 => challenge_15(),
             16 => challenge_16(),
+            17 => challenge_17(),
+            18 => challenge_18(),
             _ => () 
         }
     }
@@ -831,5 +907,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(16);
+    challenge::challenge(18);
 }
