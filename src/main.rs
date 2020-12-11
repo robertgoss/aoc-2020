@@ -664,6 +664,74 @@ mod cipher {
     }
 }
 
+mod adaptors {
+    use std::collections::HashMap;
+
+    pub struct Adaptors {
+        full_chain : Vec<usize>
+    }
+
+    impl Adaptors {
+        pub fn from_lines<I>(lines : I) -> Adaptors 
+          where I : Iterator<Item = String> 
+        {
+            let mut full_chain : Vec<usize> = lines.filter_map(
+                |line| line.parse::<usize>().ok()
+            ).collect();
+            full_chain.push(0);
+            full_chain.push(*full_chain.iter().max().unwrap()+3);
+            full_chain.sort_unstable();
+            Adaptors {
+                full_chain : full_chain
+            }
+        }
+
+        pub fn joltage_differences(self : &Self) -> usize {
+            let one_differences = self.full_chain.windows(2).filter(
+                |slice| slice[1] == slice[0]+1
+            ).count();
+            let three_differences = self.full_chain.windows(2).filter(
+                |slice| slice[1] == slice[0]+3
+            ).count();
+            one_differences * three_differences
+        }
+
+        fn number_arrangements_start_cached(
+            self : &Self, 
+            start_index : usize, 
+            cache : &mut HashMap<usize, usize>
+        ) -> usize {
+            let chain_len = self.full_chain.len();
+            // Base cases
+            if start_index == chain_len - 1 {
+                return 1;
+            }
+            if cache.contains_key(&start_index) {
+                return cache[&start_index];
+            }
+            let mut count = 0;
+            // Get the number of arangements is we take the next elements (max 3)
+            let start_val = self.full_chain[start_index];
+            for delta in 1..=3 {
+                let next_index = start_index + delta;
+                if next_index < chain_len {
+                    let next_val = self.full_chain[next_index];
+                    if next_val <= start_val + 3 {
+                        count += self.number_arrangements_start_cached(next_index, cache);
+                    }
+                }
+            }
+            cache.insert(start_index, count);
+            count
+        }
+
+        pub fn number_arrangements(self : &Self) -> usize {
+            let mut cache : HashMap<usize, usize> = HashMap::new();
+            self.number_arrangements_start_cached(0, &mut cache)
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
     use std::fs;
@@ -677,6 +745,7 @@ mod io {
     use super::baggage as baggage;
     use super::cpu as cpu;
     use super::cipher as cipher;
+    use super::adaptors as adaptors;
 
     pub fn input_as_list(day: i8) -> Vec<i64> {
         let filename = format!("data/day-{}.txt", day);
@@ -764,6 +833,15 @@ mod io {
         let file = File::open(filename).expect("Issue opening file");
         let reader = BufReader::new(&file);
         cipher::CipherText::from_lines(
+            reader.lines().map(|line| line.expect("Read failure"))
+        )
+    }
+
+    pub fn input_as_adaptors(day : i8) -> adaptors::Adaptors {
+        let filename = format!("data/day-{}.txt", day);
+        let file = File::open(filename).expect("Issue opening file");
+        let reader = BufReader::new(&file);
+        adaptors::Adaptors::from_lines(
             reader.lines().map(|line| line.expect("Read failure"))
         )
     }
@@ -878,6 +956,16 @@ mod challenge {
         let num = data.weakness(25).unwrap();
         println!("{}", num);
     }
+    fn challenge_19() {
+        let data = io::input_as_adaptors(10);
+        let num = data.joltage_differences();
+        println!("{}", num);
+    }
+    fn challenge_20() {
+        let data = io::input_as_adaptors(10);
+        let num = data.number_arrangements();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -899,6 +987,8 @@ mod challenge {
             16 => challenge_16(),
             17 => challenge_17(),
             18 => challenge_18(),
+            19 => challenge_19(),
+            20 => challenge_20(),
             _ => () 
         }
     }
@@ -907,5 +997,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(18);
+    challenge::challenge(20);
 }
