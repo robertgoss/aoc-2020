@@ -1066,6 +1066,16 @@ mod directions {
 }
 
 mod buses {
+
+    use num_bigint::BigInt;
+    use ring_algorithm::chinese_remainder_theorem;
+
+    fn solve_remainder_problem(problem : &[(u64, usize)]) -> BigInt {
+        let remainders : Vec<BigInt> = problem.iter().map(|(_,r)| BigInt::from(*r)).collect();
+        let modulos : Vec<BigInt> = problem.iter().map(|(m,_)| BigInt::from(*m) ).collect();
+        -chinese_remainder_theorem::<BigInt>(&remainders, &modulos).unwrap()
+    }
+
     #[derive(Copy, Clone)]
     pub struct Bus {
         period : Option<u64>
@@ -1077,8 +1087,8 @@ mod buses {
             }
         }
 
-        pub fn id(self : &Self) -> u64 {
-            self.period.unwrap()
+        pub fn id(self : &Self) -> Option<u64> {
+            self.period
         }
 
         pub fn departs(self : &Self, timestamp : u64) -> bool {
@@ -1115,6 +1125,14 @@ mod buses {
             ).next().map(
                 |bus| *bus
             )
+        }
+
+        pub fn first_congunction(self : &Self) -> BigInt {
+            let remainder_problem : Vec<(u64, usize)> =
+                self.buses.iter().enumerate().filter_map(
+                    |(i,bus)| bus.id().map(|modulo| (modulo, i))
+                ).collect();
+            solve_remainder_problem(&remainder_problem)
         }
     }
 }
@@ -1418,7 +1436,12 @@ mod challenge {
     fn challenge_25() {
         let data = io::input_as_timetable(13);
         let (offset, bus) = data.first_bus().unwrap();
-        let num = offset * bus.id();
+        let num = offset * bus.id().unwrap();
+        println!("{}", num);
+    }
+    fn challenge_26() {
+        let data = io::input_as_timetable(13);
+        let num = data.first_congunction();
         println!("{}", num);
     }
 
@@ -1449,6 +1472,7 @@ mod challenge {
             23 => challenge_23(),
             24 => challenge_24(),
             25 => challenge_25(),
+            26 => challenge_26(),
             _ => () 
         }
     }
@@ -1457,5 +1481,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(25);
+    challenge::challenge(26);
 }
