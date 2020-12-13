@@ -1065,6 +1065,60 @@ mod directions {
 
 }
 
+mod buses {
+    #[derive(Copy, Clone)]
+    pub struct Bus {
+        period : Option<u64>
+    }
+    impl Bus {
+        pub fn from_string(string : &str) -> Bus {
+            Bus {
+                period : string.parse::<u64>().ok()
+            }
+        }
+
+        pub fn id(self : &Self) -> u64 {
+            self.period.unwrap()
+        }
+
+        pub fn departs(self : &Self, timestamp : u64) -> bool {
+            self.period.map(
+                |time| timestamp % time == 0
+            ).unwrap_or(false)
+        }
+    }
+    pub struct Timetable {
+        timestamp : u64,
+        buses : Vec<Bus>
+    }
+    impl Timetable {
+        pub fn from_lines(line1 : &str, line2 : &str) -> Timetable {
+            Timetable {
+                timestamp : line1.parse::<u64>().unwrap(),
+                buses : line2.split(",").map(
+                    |string| Bus::from_string(string)
+                ).collect()
+            }
+        }
+
+        pub fn first_bus(self : &Self) -> Option<(u64, Bus)> {
+            (0..).filter_map(
+                |index| self.has_bus(index + self.timestamp).map(
+                    |bus| (index, bus)
+                )
+            ).next()
+        }
+
+        fn has_bus(self : &Self, timestamp : u64) -> Option<Bus> {
+            self.buses.iter().filter(
+                |bus| bus.departs(timestamp)
+            ).next().map(
+                |bus| *bus
+            )
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
     use std::fs;
@@ -1081,6 +1135,7 @@ mod io {
     use super::adaptors as adaptors;
     use super::seating as seating;
     use super::directions as directions;
+    use super::buses as buses;
 
     pub fn input_as_list(day: i8) -> Vec<i64> {
         let filename = format!("data/day-{}.txt", day);
@@ -1197,6 +1252,19 @@ mod io {
         reader.lines().filter_map(
             |line| directions::Action::from_string(&line.expect("Read failure"))
         ).collect()
+    }
+
+    pub fn input_as_timetable(day : i8) -> buses::Timetable {
+        let filename = format!("data/day-{}.txt", day);
+        let file = File::open(filename).expect("Issue opening file");
+        let reader = BufReader::new(&file);
+        let lines : Vec<String> = reader.lines().map(
+            |line| line.expect("Read failure")
+        ).collect();
+        buses::Timetable::from_lines(
+            &lines[0],
+            &lines[1]
+        )
     }
 }
 
@@ -1347,6 +1415,12 @@ mod challenge {
         let num = ship.distance();
         println!("{}", num);
     }
+    fn challenge_25() {
+        let data = io::input_as_timetable(13);
+        let (offset, bus) = data.first_bus().unwrap();
+        let num = offset * bus.id();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -1374,6 +1448,7 @@ mod challenge {
             22 => challenge_22(),
             23 => challenge_23(),
             24 => challenge_24(),
+            25 => challenge_25(),
             _ => () 
         }
     }
@@ -1382,5 +1457,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(24);
+    challenge::challenge(25);
 }
