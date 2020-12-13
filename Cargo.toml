@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 petgraph = "0.5.1"
+ring-algorithm = "0.2.2"
+num-bigint = "0.3.0"
