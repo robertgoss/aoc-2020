@@ -1312,6 +1312,49 @@ mod docking {
     }
 }
 
+mod memory_game {
+    use std::collections::HashMap;
+
+    pub struct Game {
+        initial : Vec<u64>,
+        index : u64,
+        memory : HashMap<u64, u64>,
+        previous : u64
+    }
+
+    impl Game {
+        pub fn new(initial : Vec<u64>) -> Game {
+            Game {
+                initial : initial,
+                index : 0,
+                memory : HashMap::new(),
+                previous : 0
+            }
+        }
+
+        fn next_num(self : &Self) -> u64 {
+            *self.initial.get(self.index as usize).unwrap_or(
+                &self.memory.get(&self.previous).map(
+                    |prev_index| self.index - prev_index
+                ).unwrap_or(0)
+            )
+        }
+    }
+
+    impl Iterator for Game {
+        type Item = u64;
+
+        fn next(self : &mut Self) -> Option<u64> {
+            let num = self.next_num();
+            // Update state
+            self.memory.insert(self.previous, self.index);
+            self.previous = num;
+            self.index += 1;
+            Some(num)
+        }
+    }
+}
+
 mod io {
     use std::io::BufRead;
     use std::fs;
@@ -1337,6 +1380,14 @@ mod io {
         let reader = BufReader::new(&file);
         reader.lines().map(
             |s| s.expect("Read failure").parse::<i64>().unwrap()
+        ).collect()
+    }
+
+    pub fn input_as_comma_list(day: i8) -> Vec<u64> {
+        let filename = format!("data/day-{}.txt", day);
+        let data = fs::read_to_string(filename).expect("Issue reading file");
+        data.split(",").map(
+            |s| s.parse::<u64>().unwrap()
         ).collect()
     }
 
@@ -1478,6 +1529,7 @@ mod challenge {
     use super::seating as seating;
     use super::directions as directions;
     use super::docking as docking;
+    use super::memory_game as memory_game;
 
     fn challenge_1() {
         let data = io::input_as_list(1);
@@ -1644,6 +1696,20 @@ mod challenge {
         let num = cpu.sum_variables();
         println!("{}", num);
     }
+    fn challenge_29() {
+        let mut data = memory_game::Game::new(
+            io::input_as_comma_list(15)
+        );
+        let num = data.nth(2020-1).unwrap();
+        println!("{}", num);
+    }
+    fn challenge_30() {
+        let mut data = memory_game::Game::new(
+            io::input_as_comma_list(15)
+        );
+        let num = data.nth(30000000-1).unwrap();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -1675,6 +1741,8 @@ mod challenge {
             26 => challenge_26(),
             27 => challenge_27(),
             28 => challenge_28(),
+            29 => challenge_29(),
+            30 => challenge_30(),
             _ => () 
         }
     }
@@ -1683,5 +1751,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(28);
+    challenge::challenge(30);
 }
