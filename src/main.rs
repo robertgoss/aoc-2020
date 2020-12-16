@@ -18,6 +18,7 @@ mod seating;
 mod directions;
 mod buses;
 mod docking;
+mod ticket_scanning;
 
 mod io;
 
@@ -209,6 +210,19 @@ mod challenge {
         let num = data.nth(30000000-1).unwrap();
         println!("{}", num);
     }
+    fn challenge_31() {
+        let data = io::input_as_scanning_results(16);
+        let num = data.scanning_error_rate();
+        println!("{}", num);
+    }
+    fn challenge_32() {
+        let mut data = io::input_as_scanning_results(16);
+        data.discard_invalid();
+        let num : u64 = data.departures().iter().map(
+            |name| data.own_field(name).unwrap()
+        ).product();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -242,6 +256,8 @@ mod challenge {
             28 => challenge_28(),
             29 => challenge_29(),
             30 => challenge_30(),
+            31 => challenge_31(),
+            32 => challenge_32(),
             _ => () 
         }
     }
@@ -250,5 +266,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(30);
+    challenge::challenge(32);
 }

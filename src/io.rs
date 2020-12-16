@@ -2,6 +2,7 @@ use std::io::BufRead;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
+
 use super::passwords as passwords;
 use super::map as map;
 use super::passport as passport;
@@ -15,6 +16,8 @@ use super::seating as seating;
 use super::directions as directions;
 use super::buses as buses;
 use super::docking as docking;
+use super::ticket_scanning as ticket_scanning;
+
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
     let file = File::open(filename).expect("Issue opening file");
@@ -145,5 +148,15 @@ pub fn input_as_docking_program(day : i8) -> docking::Program {
     let reader = BufReader::new(&file);
     docking::Program::from_lines(
         reader.lines().map(|line| line.expect("Read failure"))
+    )
+}
+pub fn input_as_scanning_results(day : i8) -> ticket_scanning::ScanningResult {
+    let filename = format!("data/day-{}.txt", day);
+    let data = fs::read_to_string(filename).expect("Issue reading file");
+    let chunks : Vec<&str> = data.split("\n\n").collect();
+    ticket_scanning::ScanningResult::from_lines(
+        chunks[0].lines(),
+        chunks[1].lines().nth(1).unwrap(),
+        chunks[2].lines().skip(1)
     )
 }
