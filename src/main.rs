@@ -19,6 +19,7 @@ mod directions;
 mod buses;
 mod docking;
 mod ticket_scanning;
+mod conway;
 
 mod io;
 
@@ -30,6 +31,7 @@ mod challenge {
     use super::directions as directions;
     use super::docking as docking;
     use super::memory_game as memory_game;
+    use super::conway as conway;
 
     fn challenge_1() {
         let data = io::input_as_list(1);
@@ -223,6 +225,18 @@ mod challenge {
         ).product();
         println!("{}", num);
     }
+    fn challenge_33() {
+        let mut data = io::input_as_conway::<conway::Position3D>(17);
+        data.simulate_n(6);
+        let num = data.num_cubes();
+        println!("{}", num);
+    }
+    fn challenge_34() {
+        let mut data = io::input_as_conway::<conway::Position4D>(17);
+        data.simulate_n(6);
+        let num = data.num_cubes();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -258,6 +272,8 @@ mod challenge {
             30 => challenge_30(),
             31 => challenge_31(),
             32 => challenge_32(),
+            33 => challenge_33(),
+            34 => challenge_34(),
             _ => () 
         }
     }
@@ -266,5 +282,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(32);
+    challenge::challenge(34);
 }

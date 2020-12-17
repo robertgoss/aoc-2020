@@ -2,6 +2,7 @@ use std::io::BufRead;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
+use std::hash::Hash;
 
 use super::passwords as passwords;
 use super::map as map;
@@ -17,6 +18,7 @@ use super::directions as directions;
 use super::buses as buses;
 use super::docking as docking;
 use super::ticket_scanning as ticket_scanning;
+use super::conway as conway;
 
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
@@ -158,5 +160,15 @@ pub fn input_as_scanning_results(day : i8) -> ticket_scanning::ScanningResult {
         chunks[0].lines(),
         chunks[1].lines().nth(1).unwrap(),
         chunks[2].lines().skip(1)
+    )
+}
+pub fn input_as_conway<P>(day : i8) -> conway::Conway<P>
+  where P : conway::Position + Eq + Hash + Copy
+{
+    let filename = format!("data/day-{}.txt", day);
+    let file = File::open(filename).expect("Issue opening file");
+    let reader = BufReader::new(&file);
+    conway::Conway::from_lines(
+        reader.lines().map(|line| line.expect("Read failure"))
     )
 }
