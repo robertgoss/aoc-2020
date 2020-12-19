@@ -20,6 +20,11 @@ mod buses;
 mod docking;
 mod ticket_scanning;
 mod conway;
+mod expressions;
+
+extern crate pest;
+#[macro_use]
+extern crate pest_derive;
 
 mod io;
 
@@ -237,6 +242,20 @@ mod challenge {
         let num = data.num_cubes();
         println!("{}", num);
     }
+    fn challenge_35() {
+        let data = io::input_as_expressions(18);
+        let num : i64 = data.iter().map(
+            |expr| expr.compute()
+        ).sum();
+        println!("{}", num);
+    }
+    fn challenge_36() {
+        let data = io::input_as_expressions(18);
+        let num : i64 = data.iter().map(
+            |expr| expr.compute_precedent()
+        ).sum();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -274,6 +293,8 @@ mod challenge {
             32 => challenge_32(),
             33 => challenge_33(),
             34 => challenge_34(),
+            35 => challenge_35(),
+            36 => challenge_36(),
             _ => () 
         }
     }
@@ -282,5 +303,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(34);
+    challenge::challenge(36);
 }

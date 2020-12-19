@@ -19,6 +19,7 @@ use super::buses as buses;
 use super::docking as docking;
 use super::ticket_scanning as ticket_scanning;
 use super::conway as conway;
+use super::expressions as expressions;
 
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
@@ -171,4 +172,12 @@ pub fn input_as_conway<P>(day : i8) -> conway::Conway<P>
     conway::Conway::from_lines(
         reader.lines().map(|line| line.expect("Read failure"))
     )
+}
+pub fn input_as_expressions(day : i8) -> Vec<expressions::Expression> {
+    let filename = format!("data/day-{}.txt", day);
+    let file = File::open(filename).expect("Issue opening file");
+    let reader = BufReader::new(&file);
+    reader.lines().map(|
+        line| expressions::Expression::from_string(&line.expect("Read failure")).unwrap()
+    ).collect()
 }
