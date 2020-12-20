@@ -21,6 +21,7 @@ mod docking;
 mod ticket_scanning;
 mod conway;
 mod expressions;
+mod matching;
 
 extern crate pest;
 #[macro_use]
@@ -256,6 +257,21 @@ mod challenge {
         ).sum();
         println!("{}", num);
     }
+    fn challenge_37() {
+        let (rules, data) = io::input_as_matching(19);
+        let num : usize = data.iter().filter(
+            |line| rules.is_match(&line)
+        ).count();
+        println!("{}", num);
+    }
+    fn challenge_38() {
+        let (mut rules, data) = io::input_as_matching(19);
+        rules.add_new_rules();
+        let num : usize = data.iter().filter(
+            |line| rules.is_match(&line)
+        ).count();
+        println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -295,6 +311,8 @@ mod challenge {
             34 => challenge_34(),
             35 => challenge_35(),
             36 => challenge_36(),
+            37 => challenge_37(),
+            38 => challenge_38(),
             _ => () 
         }
     }
@@ -303,5 +321,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(36);
+    challenge::challenge(38);
 }

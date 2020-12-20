@@ -20,6 +20,7 @@ use super::docking as docking;
 use super::ticket_scanning as ticket_scanning;
 use super::conway as conway;
 use super::expressions as expressions;
+use super::matching as matching;
 
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
@@ -180,4 +181,19 @@ pub fn input_as_expressions(day : i8) -> Vec<expressions::Expression> {
     reader.lines().map(|
         line| expressions::Expression::from_string(&line.expect("Read failure")).unwrap()
     ).collect()
+}
+pub fn input_as_matching(day : i8) -> (matching::RuleSet, Vec<String>) {
+    let lines_filename = format!("data/day-{}.txt", day);
+    let lines_file = File::open(lines_filename).expect("Issue opening file");
+    let lines_reader = BufReader::new(&lines_file);
+    let lines : Vec<String> = lines_reader.lines().map(
+        |line| line.expect("Read failure")
+    ).collect();
+    let rules_filename = format!("data/day-{}.rules", day);
+    let rules_file = File::open(rules_filename).expect("Issue opening file");
+    let rules_reader = BufReader::new(&rules_file);
+    let ruleset = matching::RuleSet::from_lines(
+        rules_reader.lines().map(|line| line.expect("Read failure"))
+    );
+    (ruleset, lines)
 }
