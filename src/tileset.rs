@@ -11,11 +11,56 @@ pub struct TileSet {
     tiles : HashMap<u64, Tile>
 }
 
+pub struct Picture {
+    size : usize,
+    data : HashMap<(i64, i64), bool>
+}
+
 enum Side {
     Top,
     Bottom,
     Left,
     Right
+}
+
+#[derive(Debug)]
+pub enum Transform {
+    Id,
+    FlipX,
+    FlipY,
+    FlipXY,
+    Swap,
+    SwapFlipX,
+    SwapFlipY,
+    SwapFlipXY
+}
+
+impl Transform {
+    pub fn all() -> Vec<Transform> {
+        vec!(
+            Transform::Id,
+            Transform::FlipX,
+            Transform::FlipY,
+            Transform::FlipXY,
+            Transform::Swap,
+            Transform::SwapFlipX,
+            Transform::SwapFlipY,
+            Transform::SwapFlipXY
+        )
+    }
+
+    pub fn transform(self : &Self, i : i64, j : i64) -> (i64, i64) {
+        match self {
+            Transform::Id => (i,j),
+            Transform::FlipX => (-i, j),
+            Transform::FlipY => (i, -j),
+            Transform::FlipXY => (-i, -j),
+            Transform::Swap => (j, i),
+            Transform::SwapFlipX => (-j, i),
+            Transform::SwapFlipY => (j, -i),
+            Transform::SwapFlipXY => (-j, -i)
+        }
+    }
 }
 
 pub struct TileSolution<'a> {
@@ -51,6 +96,10 @@ impl Tile {
             ).collect()
         ).collect();
         Tile { id : id, data : data }
+    }
+
+    pub fn pixel(self : &Self, i : usize, j : usize) -> bool {
+        self.data[i][j]
     }
 
     pub fn edge(self : &Self, side : &Side) -> Vec<bool> {
@@ -143,7 +192,6 @@ impl TileSet {
                 normalized_edge_counts.entry(edge).or_insert(Vec::new()).push(tile.id);
             }
         }
-        println!("{}", tiles.values().count());
         TileSet{
             tiles : tiles,
             normalized_edge_counts : normalized_edge_counts
@@ -192,16 +240,22 @@ impl TileSet {
         ).unwrap()
     }
 
-    
+    fn tile_has_edge(self : &Self, tile_id : u64, edge : &Vec<bool>) -> bool {
+        self.normalized_edge_counts[&normalized_edge(edge)].iter().any(
+            |id| *id == tile_id
+        )
+    }
 
     fn find_top_edge(self : &Self, left : &Vec<bool>, exclude : &HashSet<u64>) -> Tile {
         for edge_tile_id in self.tile_class(1) {
-            for unmatched_edge in self.unmatched_edges(edge_tile_id) {
-                let tile = self.find_by_top_left_edges(&unmatched_edge, left, exclude).or(
-                    self.find_by_top_left_edges(&flip_edge(&unmatched_edge), left, exclude)
-                );
-                if tile.is_some() {
-                    return tile.unwrap()
+            if self.tile_has_edge(edge_tile_id, left) {
+                for unmatched_edge in self.unmatched_edges(edge_tile_id) {
+                    let tile = self.find_by_top_left_edges(&unmatched_edge, left, exclude).or(
+                        self.find_by_top_left_edges(&flip_edge(&unmatched_edge), left, exclude)
+                    );
+                    if tile.is_some() {
+                        return tile.unwrap()
+                    }
                 }
             }
         }
@@ -210,12 +264,14 @@ impl TileSet {
 
     fn find_left_edge(self : &Self, top : &Vec<bool>, exclude : &HashSet<u64>) -> Tile {
         for edge_tile_id in self.tile_class(1) {
-            for unmatched_edge in self.unmatched_edges(edge_tile_id) {
-                let tile = self.find_by_top_left_edges(top, &unmatched_edge, exclude).or(
-                    self.find_by_top_left_edges(top, &flip_edge(&unmatched_edge), exclude)
-                );
-                if tile.is_some() {
-                    return tile.unwrap()
+            if self.tile_has_edge(edge_tile_id, top) {
+                for unmatched_edge in self.unmatched_edges(edge_tile_id) {
+                    let tile = self.find_by_top_left_edges(top, &unmatched_edge, exclude).or(
+                        self.find_by_top_left_edges(top, &flip_edge(&unmatched_edge), exclude)
+                    );
+                    if tile.is_some() {
+                        return tile.unwrap()
+                    }
                 }
             }
         }
@@ -270,6 +326,30 @@ impl<'a> TileSolution<'a> {
         )
     }
 
+    fn pixel(self : &Self, row : usize, col : usize) -> bool {
+        let i = row / 8;
+        let j = col / 8;
+        let tile : &Tile = &self.tiles[&(i as i64, j as i64)];
+        tile.pixel(
+            1 + (row % 8),
+            1 + (col % 8)
+        )
+    }
+
+    pub fn picture(self : &Self) -> Picture {
+        let num = self.size * 8;
+        let mut data : HashMap<(i64, i64), bool>= HashMap::new();
+        for i in 0..num {
+            for j in 0..num {
+                data.insert((i as i64,j as i64), self.pixel(i,j));
+            }
+        }
+        Picture {
+            size : num,
+            data : data
+        }
+    }
+
     fn solve_tile(self : &mut Self, i : i64, j : i64) {
         let top = self.tiles.get(&(i-1,j)).map(
             |tile| tile.edge(&Side::Bottom)
@@ -279,7 +359,71 @@ impl<'a> TileSolution<'a> {
         );
         let tile = self.tileset.find_by_top_left(top, left, &self.used);
         self.used.insert(tile.id);
-        println!("{} {} - done => {}", i, j, tile.id);
         self.tiles.insert((i,j), tile);
+    }
+}
+
+impl Picture {
+
+    fn monster(transform : &Transform) -> Vec<(i64, i64)> {
+        vec!(
+            (18, 0),
+            (0, 1),
+            (5, 1),
+            (6, 1),
+            (11, 1),
+            (12, 1),
+            (17, 1),
+            (18, 1),
+            (19, 1),
+            (1, 2),
+            (4, 2),
+            (7, 2),
+            (10, 2),
+            (13, 2),
+            (16, 2)
+        ).into_iter().map(
+            |(i,j)| transform.transform(i,j)
+        ).collect()
+    }
+
+    fn has_monster(self : &Self, i : i64, j : i64, transform : &Transform) -> bool {
+        Picture::monster(transform).into_iter().all(
+            |(delta_i,delta_j)| self.get(i + delta_i, j + delta_j)
+        )
+    }
+
+    pub fn total(self : &Self) -> usize {
+        let mut total : usize = 0;
+        for i in 0..self.size {
+            for j in 0..self.size {
+                if self.get(i as i64, j as i64) {
+                    total += 1;
+                }
+            }
+        }
+        total
+    }
+
+    pub fn search_monster(self : &Self) -> HashSet<(usize, usize)> {
+        let mut found : HashSet<(usize, usize)> = HashSet::new();
+        for i in 0..self.size {
+            for j in 0..self.size {
+                for transform in Transform::all() {
+                    if self.has_monster(i as i64, j as i64, &transform) {
+                        for (delta_i,delta_j) in Picture::monster(&transform) {
+                            let m_i = ((i as i64) + delta_i) as usize;
+                            let m_j = ((j as i64) + delta_j) as usize;
+                            found.insert((m_i, m_j));
+                        }
+                    }
+                }
+            }
+        }
+        found
+    }
+
+    fn get(self : &Self, i : i64, j : i64) -> bool {
+        *self.data.get(&(i,j)).unwrap_or(&false)
     }
 }

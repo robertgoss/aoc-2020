@@ -282,8 +282,11 @@ mod challenge {
     fn challenge_40() {
         let tileset = io::input_as_tileset(20);
         let solution = tileset.solve(12);
-        //let num : u64 = tileset.corner_tiles().iter().product();
-        //println!("{}", num);
+        let picture = solution.picture();
+        let total = picture.total();
+        let monster_num = picture.search_monster().len();
+        let num = total - monster_num;
+        println!("{}", num);
     }
 
     pub fn challenge(num : u8) {
@@ -336,5 +339,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(39);
+    challenge::challenge(40);
 }
