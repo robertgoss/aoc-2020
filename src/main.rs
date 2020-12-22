@@ -22,6 +22,7 @@ mod ticket_scanning;
 mod conway;
 mod expressions;
 mod matching;
+mod tileset;
 
 extern crate pest;
 #[macro_use]
@@ -272,6 +273,18 @@ mod challenge {
         ).count();
         println!("{}", num);
     }
+    fn challenge_39() {
+        let tileset = io::input_as_tileset(20);
+        let solution = tileset.solve(12);
+        let num : u64 = solution.corner_tiles().iter().product();
+        println!("{}", num);
+    }
+    fn challenge_40() {
+        let tileset = io::input_as_tileset(20);
+        let solution = tileset.solve(12);
+        //let num : u64 = tileset.corner_tiles().iter().product();
+        //println!("{}", num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -313,6 +326,8 @@ mod challenge {
             36 => challenge_36(),
             37 => challenge_37(),
             38 => challenge_38(),
+            39 => challenge_39(),
+            40 => challenge_40(),
             _ => () 
         }
     }
@@ -321,5 +336,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(38);
+    challenge::challenge(39);
 }

@@ -21,6 +21,7 @@ use super::ticket_scanning as ticket_scanning;
 use super::conway as conway;
 use super::expressions as expressions;
 use super::matching as matching;
+use super::tileset as tileset;
 
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
@@ -196,4 +197,9 @@ pub fn input_as_matching(day : i8) -> (matching::RuleSet, Vec<String>) {
         rules_reader.lines().map(|line| line.expect("Read failure"))
     );
     (ruleset, lines)
+}
+pub fn input_as_tileset(day : i8) -> tileset::TileSet {
+    let filename = format!("data/day-{}.txt", day);
+    let data = fs::read_to_string(filename).expect("Issue reading file");
+    tileset::TileSet::from_string(&data)
 }
