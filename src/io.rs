@@ -22,6 +22,7 @@ use super::conway as conway;
 use super::expressions as expressions;
 use super::matching as matching;
 use super::tileset as tileset;
+use super::allergens as allergens;
 
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
@@ -202,4 +203,13 @@ pub fn input_as_tileset(day : i8) -> tileset::TileSet {
     let filename = format!("data/day-{}.txt", day);
     let data = fs::read_to_string(filename).expect("Issue reading file");
     tileset::TileSet::from_string(&data)
+}
+pub fn input_as_menu(day : i8) -> allergens::Menu
+{
+    let filename = format!("data/day-{}.txt", day);
+    let file = File::open(filename).expect("Issue opening file");
+    let reader = BufReader::new(&file);
+    allergens::Menu::from_lines(
+        reader.lines().map(|line| line.expect("Read failure"))
+    )
 }

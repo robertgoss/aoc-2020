@@ -8,7 +8,6 @@ mod passwords;
 mod map;
 mod passport;
 mod ticket;
-
 mod customs;
 mod baggage;
 mod cpu;
@@ -23,6 +22,7 @@ mod conway;
 mod expressions;
 mod matching;
 mod tileset;
+mod allergens;
 
 extern crate pest;
 #[macro_use]
@@ -288,6 +288,16 @@ mod challenge {
         let num = total - monster_num;
         println!("{}", num);
     }
+    fn challenge_41() {
+        let menu = io::input_as_menu(21);
+        let num = menu.count_ingredients_no_allergens();
+        println!("{}", num);
+    }
+    fn challenge_42() {
+        let menu = io::input_as_menu(21);
+        let ingredients = menu.ordered_ingredients_allergens();
+        println!("{}", ingredients.join(","));
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -331,6 +341,8 @@ mod challenge {
             38 => challenge_38(),
             39 => challenge_39(),
             40 => challenge_40(),
+            41 => challenge_41(),
+            42 => challenge_42(),
             _ => () 
         }
     }
@@ -339,5 +351,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(40);
+    challenge::challenge(42);
 }
