@@ -312,17 +312,17 @@ mod challenge {
         println!("{}",data.score());
     }
     fn challenge_45() {
-        let mut data = cups::Cups::from_ints(
-            vec!(3,6,2,9,8,1,7,5,4), 9
+        let mut data = cups::Cups::from_cycle_ints(
+            vec!(3,6,2,9,8,1,7,5,4)
         );
         data.simulate(100);
         println!("{}",data.labels(1));
     }
     fn challenge_46() {
-        let mut data = cups::Cups::from_ints(
-            vec!(3,6,2,9,8,1,7,5,4), 1000001
-        );
-        data.simulate(100);
+        let init = vec!(3,6,2,9,8,1,7,5,4);
+        let vec :Vec<usize> = init.into_iter().chain(10..=1000000).collect();
+        let mut data = cups::Cups::from_cycle_ints(vec);
+        data.simulate(10000000);
         let num = data.offset_labels(1, 1) * data.offset_labels(1, 2);
         println!("{}",num);
     }
@@ -383,5 +383,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(45);
+    challenge::challenge(46);
 }
