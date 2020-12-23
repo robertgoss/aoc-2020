@@ -24,6 +24,7 @@ mod matching;
 mod tileset;
 mod allergens;
 mod crabs;
+mod cups;
 
 extern crate pest;
 #[macro_use]
@@ -40,6 +41,7 @@ mod challenge {
     use super::docking as docking;
     use super::memory_game as memory_game;
     use super::conway as conway;
+    use super::cups as cups;
 
     fn challenge_1() {
         let data = io::input_as_list(1);
@@ -309,6 +311,21 @@ mod challenge {
         data.play_recursive();
         println!("{}",data.score());
     }
+    fn challenge_45() {
+        let mut data = cups::Cups::from_ints(
+            vec!(3,6,2,9,8,1,7,5,4), 9
+        );
+        data.simulate(100);
+        println!("{}",data.labels(1));
+    }
+    fn challenge_46() {
+        let mut data = cups::Cups::from_ints(
+            vec!(3,6,2,9,8,1,7,5,4), 1000001
+        );
+        data.simulate(100);
+        let num = data.offset_labels(1, 1) * data.offset_labels(1, 2);
+        println!("{}",num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -356,6 +373,8 @@ mod challenge {
             42 => challenge_42(),
             43 => challenge_43(),
             44 => challenge_44(),
+            45 => challenge_45(),
+            46 => challenge_46(),
             _ => () 
         }
     }
@@ -364,5 +383,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(44);
+    challenge::challenge(45);
 }
