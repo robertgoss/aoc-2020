@@ -23,6 +23,7 @@ use super::expressions as expressions;
 use super::matching as matching;
 use super::tileset as tileset;
 use super::allergens as allergens;
+use super::crabs as crabs;
 
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
@@ -211,5 +212,15 @@ pub fn input_as_menu(day : i8) -> allergens::Menu
     let reader = BufReader::new(&file);
     allergens::Menu::from_lines(
         reader.lines().map(|line| line.expect("Read failure"))
+    )
+}
+pub fn input_as_game(day : i8) -> crabs::Game
+{
+    let filename = format!("data/day-{}.txt", day);
+    let data = fs::read_to_string(filename).expect("Issue reading file");
+    let players : Vec<&str> = data.split("\n\n").collect();
+    crabs::Game::from_lines(
+        players[0].lines().rev(),
+        players[1].lines().rev()
     )
 }

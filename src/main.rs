@@ -23,6 +23,7 @@ mod expressions;
 mod matching;
 mod tileset;
 mod allergens;
+mod crabs;
 
 extern crate pest;
 #[macro_use]
@@ -298,6 +299,16 @@ mod challenge {
         let ingredients = menu.ordered_ingredients_allergens();
         println!("{}", ingredients.join(","));
     }
+    fn challenge_43() {
+        let mut data = io::input_as_game(22);
+        data.play();
+        println!("{}",data.score());
+    }
+    fn challenge_44() {
+        let mut data = io::input_as_game(22);
+        data.play_recursive();
+        println!("{}",data.score());
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -343,6 +354,8 @@ mod challenge {
             40 => challenge_40(),
             41 => challenge_41(),
             42 => challenge_42(),
+            43 => challenge_43(),
+            44 => challenge_44(),
             _ => () 
         }
     }
@@ -351,5 +364,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(42);
+    challenge::challenge(44);
 }
