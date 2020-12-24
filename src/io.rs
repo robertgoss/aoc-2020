@@ -24,6 +24,7 @@ use super::matching as matching;
 use super::tileset as tileset;
 use super::allergens as allergens;
 use super::crabs as crabs;
+use super::floor as floor;
 
 pub fn input_as_list(day: i8) -> Vec<i64> {
     let filename = format!("data/day-{}.txt", day);
@@ -223,4 +224,13 @@ pub fn input_as_game(day : i8) -> crabs::Game
         players[0].lines().rev(),
         players[1].lines().rev()
     )
+}
+pub fn input_as_paths(day : i8) -> Vec<floor::Path>
+{
+    let filename = format!("data/day-{}.txt", day);
+    let file = File::open(filename).expect("Issue opening file");
+    let reader = BufReader::new(&file);
+    reader.lines().map(|line| 
+        floor::Path::from_line(&line.expect("Read failure"))
+    ).collect()
 }

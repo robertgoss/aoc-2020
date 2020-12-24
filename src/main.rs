@@ -25,6 +25,7 @@ mod tileset;
 mod allergens;
 mod crabs;
 mod cups;
+mod floor;
 
 extern crate pest;
 #[macro_use]
@@ -42,6 +43,7 @@ mod challenge {
     use super::memory_game as memory_game;
     use super::conway as conway;
     use super::cups as cups;
+    use super::floor as floor;
 
     fn challenge_1() {
         let data = io::input_as_list(1);
@@ -326,6 +328,21 @@ mod challenge {
         let num = data.offset_labels(1, 1) * data.offset_labels(1, 2);
         println!("{}",num);
     }
+    fn challenge_47() {
+        let data = io::input_as_paths(24);
+        let mut floor = floor::Floor::new();
+        floor.apply_paths(&data);
+        let num = floor.len();
+        println!("{}",num);
+    }
+    fn challenge_48() {
+        let data = io::input_as_paths(24);
+        let mut floor = floor::Floor::new();
+        floor.apply_paths(&data);
+        floor.simulate(100);
+        let num = floor.len();
+        println!("{}",num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -375,6 +392,8 @@ mod challenge {
             44 => challenge_44(),
             45 => challenge_45(),
             46 => challenge_46(),
+            47 => challenge_47(),
+            48 => challenge_48(),
             _ => () 
         }
     }
@@ -383,5 +402,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(46);
+    challenge::challenge(48);
 }
