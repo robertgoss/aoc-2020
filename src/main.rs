@@ -26,6 +26,7 @@ mod allergens;
 mod crabs;
 mod cups;
 mod floor;
+mod door;
 
 extern crate pest;
 #[macro_use]
@@ -343,6 +344,11 @@ mod challenge {
         let num = floor.len();
         println!("{}",num);
     }
+    fn challenge_49() {
+        let data = io::input_as_handshake(25);
+        let num = data.encryption_key();
+        println!("{}",num);
+    }
 
     pub fn challenge(num : u8) {
         match num {
@@ -394,6 +400,7 @@ mod challenge {
             46 => challenge_46(),
             47 => challenge_47(),
             48 => challenge_48(),
+            49 => challenge_49(),
             _ => () 
         }
     }
@@ -402,5 +409,5 @@ mod challenge {
 
 
 fn main() {
-    challenge::challenge(48);
+    challenge::challenge(49);
 }
